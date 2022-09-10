@@ -3,7 +3,8 @@ using Oxide.Core.Libraries.Covalence;
 
 namespace Oxide.Plugins
 {
-    [Info("PvP Toggle", "0x89A", "1.0.2")]
+    [Info("PvP Toggle", "0x89A", "1.1.4")]
+    [Description("Allows PvP to be toggled on and off ")]
     class PvpToggle : CovalencePlugin 
     {
         private bool pvpActive;
@@ -17,11 +18,12 @@ namespace Oxide.Plugins
 
         protected override void LoadDefaultMessages()
         {
-            lang.RegisterMessages(new Dictionary<string, string> { 
-            ["SyntaxError"] = "Syntax error: '/pvp <true/false>'",
-            ["SetActive"] = "Pvp is now enabled",
-            ["SetInactive"] = "Pvp is now disabled",
-            ["NoPermission"] = "You do not have permission to use this command"
+            lang.RegisterMessages(new Dictionary<string, string> 
+            { 
+                ["SyntaxError"] = "Syntax error: '/pvp <true/false>'",
+                ["SetActive"] = "Pvp is now enabled",
+                ["SetInactive"] = "Pvp is now disabled",
+                ["NoPermission"] = "You do not have permission to use this command"
             }, this);
         }
 
@@ -30,10 +32,19 @@ namespace Oxide.Plugins
         {
             if (player.IsAdmin || permission.UserHasPermission(player.Id, canuse))
             {
-                if (args.Length == 1) TogglePvp(player, args[0]);
-                else player.Message(lang.GetMessage("SyntaxError", this, player.Id));
+                if (args.Length == 1)
+                {
+                    TogglePvp(player, args[0]);
+                }
+                else
+                {
+                    player.Message(lang.GetMessage("SyntaxError", this, player.Id));
+                }
+
+                return;
             }
-            else if (player != null && permission.UserHasPermission(player.Id, canuse)) player.Message(lang.GetMessage("NoPermission", this, player.Id));
+
+            player.Message(lang.GetMessage("NoPermission", this, player.Id));
         }
 
         void TogglePvp(IPlayer player, string args)
@@ -45,17 +56,22 @@ namespace Oxide.Plugins
                 return;
             }
 
-            if (set) pvpActive = true;
-            else pvpActive = false;
+            pvpActive = set;
 
-            if (pvpActive) player.Message(lang.GetMessage("SetActive", this, player.Id));
-            else player.Message(lang.GetMessage("SetInactive", this, player.Id));
+            player.Message(lang.GetMessage(pvpActive ? "SetActive" : "SetInactive", this, player.Id));
         }
 
         object OnEntityTakeDamage(BasePlayer player, HitInfo hitInfo)
         {
-            if (hitInfo != null && (hitInfo.Initiator.IsNpc || hitInfo.HitEntity.IsNpc)) return null;
-            if (hitInfo == null || (hitInfo != null && !pvpActive && hitInfo != null && !hitInfo.Initiator.IsNpc)) return true;
+            if (hitInfo != null && ((hitInfo.Initiator != null && hitInfo.Initiator.IsNpc) || (hitInfo.HitEntity != null && hitInfo.HitEntity.IsNpc)))
+            {
+                return null;
+            }
+            
+            if (hitInfo == null || (!pvpActive && !hitInfo.Initiator.IsNpc))
+            {
+                return true;
+            }
 
             return null;
         }

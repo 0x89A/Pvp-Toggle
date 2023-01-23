@@ -3,7 +3,7 @@ using Oxide.Core.Libraries.Covalence;
 
 namespace Oxide.Plugins
 {
-    [Info("PvP Toggle", "0x89A", "1.1.4")]
+    [Info("PvP Toggle", "0x89A", "1.1.5")]
     [Description("Allows PvP to be toggled on and off ")]
     class PvpToggle : CovalencePlugin 
     {
@@ -68,7 +68,7 @@ namespace Oxide.Plugins
                 return null;
             }
             
-            if (hitInfo == null || (!pvpActive && !hitInfo.Initiator.IsNpc))
+            if (hitInfo == null || (!pvpActive && hitInfo.Initiator != null && !hitInfo.Initiator.IsNpc))
             {
                 return true;
             }
